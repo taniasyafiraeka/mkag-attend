@@ -1,5 +1,5 @@
 const Person = require("../../models/person.model");
-const Course = require("../../models/course.model");
+const Event = require("../../models/event.model");
 
 const person = async (personID) => {
   try {
@@ -24,30 +24,30 @@ const people = async (personID) => {
 };
 
 
-const course = async (courseID) => {
+const event = async (eventID) => {
   try {
-    const result = await Course.findById(courseID);
-    if (result) return CoursegqlParser(result);
+    const result = await Event.findById(eventID);
+    if (result) return EventgqlParser(result);
     else return null;
   } catch (err) {
     throw err;
   }
 };
 
-const courseUsingShortID = async (courseID) => {
+const eventUsingShortID = async (eventID) => {
   try {
-    const result = await Course.findOne({ shortID: courseID });
-    if (result) return CoursegqlParser(result);
+    const result = await Event.findOne({ shortID: eventID });
+    if (result) return EventgqlParser(result);
     else return null;
   } catch (err) {
     throw err;
   }
 };
 
-const courses = async (courseList) => {
+const events = async (eventList) => {
   try {
-    return courseList.map((r) => {
-      return CoursegqlParser(r);
+    return eventList.map((r) => {
+      return EventgqlParser(r);
     });
   } catch (err) {
     throw err;
@@ -73,19 +73,19 @@ const PersongqlParser = (person, token) => {
   };
 };
 
-const CoursegqlParser = (course) => {
+const EventgqlParser = (event) => {
   return {
-    ...course._doc,
-    createdAt: new Date(course._doc.createdAt).toISOString(),
-    updatedAt: new Date(course._doc.updatedAt).toISOString(),
-    creator: person.bind(this, course._doc.creator),
-    enrolledStudents: people.bind(this, course._doc.enrolledStudents),
+    ...event._doc,
+    createdAt: new Date(event._doc.createdAt).toISOString(),
+    updatedAt: new Date(event._doc.updatedAt).toISOString(),
+    creator: person.bind(this, event._doc.creator),
+    enrolledMembers: people.bind(this, event._doc.enrolledMembers),
   };
 };
 
-const CoursesgqlParser = (coursesList) => {
+const EventsgqlParser = (eventsList) => {
   return {
-    courses: courses.bind(this, coursesList),
+    events: events.bind(this, eventsList),
   };
 };
 
@@ -110,7 +110,7 @@ const NotificationsgqlParser = (notificationList, hasNextPage) => {
 const AttendancegqlParser = (attendanceData) => {
   return {
     ...attendanceData._doc,
-    course: courseUsingShortID.bind(this, attendanceData._doc.course),
+    event: eventUsingShortID.bind(this, attendanceData._doc.event),
   };
 };
 
@@ -118,7 +118,7 @@ const TrxgqlParser = (trxData) => {
   return {
     ...trxData._doc,
     attendanceID: trxData._doc.attendance,
-    studentID: trxData._doc.student,
+    memberID: trxData._doc.member,
     createdAt: new Date(trxData._doc.createdAt).toISOString(),
     updatedAt: new Date(trxData._doc.updatedAt).toISOString(),
   };
@@ -143,11 +143,11 @@ const FacePhotosgqlParser = (photoList, hasNextPage) => {
 module.exports = {
   person,
   people,
-  course,
-  courses,
+  event,
+  events,
   notifications,
-  CoursegqlParser,
-  CoursesgqlParser,
+  EventgqlParser,
+  EventsgqlParser,
   PersongqlParser,
   NotificationgqlParser,
   NotificationsgqlParser,

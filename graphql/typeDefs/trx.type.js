@@ -4,14 +4,14 @@ module.exports = gql`
   type Trx {
     _id: ID!
     attendanceID: String!
-    studentID: String!
+    memberID: String!
     createdAt: String!
     updatedAt: String!
   }
 
   input trxInput{
       attendanceID: ID!
-      studentID: ID!
+      memberID: ID!
   }
 
   extend type Query {

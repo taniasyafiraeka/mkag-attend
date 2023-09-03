@@ -2,7 +2,7 @@ const { model, Schema } = require("mongoose");
 
 const attendanceSchema = new Schema(
   {
-    course: {
+    event: {
       type: String,
       required: true,
     },

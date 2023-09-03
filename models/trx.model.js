@@ -6,7 +6,7 @@ const trxSchema = new Schema(
       type: Schema.Types.ObjectId,
       required: true,
     },
-    student: {
+    member: {
       type: Schema.Types.ObjectId,
       required: true,
     }

@@ -15,18 +15,18 @@ module.exports = gql`
   }
 
   type FaceProfile {
-    student: Person!
+    member: Person!
     facePhotos: [FacePhoto!]
   }
   type FaceMatcher {
-    course: Course!
+    event: Event!
     matcher: [FaceProfile!]
   }
 
   type Query {
     getFacePhotosCount: Int!
     getFacePhotos(cursor: ID, limit: Int!): FacePhotos
-    getFaceMatcherInCourse(courseID: String!): FaceMatcher!
+    getFaceMatcherInEvent(eventID: String!): FaceMatcher!
   }
 
   type Mutation {

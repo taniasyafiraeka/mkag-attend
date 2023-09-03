@@ -2,14 +2,14 @@ const { gql } = require('apollo-server');
 module.exports = gql`
   extend type Mutation {
     #TODO: Remove this later
-    testingRegisterStudent(courseID: String!): String
-    testingCreateCourse: String
-    testingDeleteAllCourse: String
+    testingRegisterMember(eventID: String!): String
+    testingCreateEvent: String
+    testingDeleteAllEvent: String
 
     createNotification: String
     deleteAllNotification: String
 
-    obtainStudentWarning(participantID: ID!, courseID: String!): Int!
+    obtainMemberWarning(participantID: ID!, eventID: String!): Int!
 
 }
 `;

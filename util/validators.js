@@ -57,16 +57,16 @@ module.exports.validateLoginInput = (email, password) => {
   };
 };
 
-module.exports.validateCourseInput = (code, name, session) => {
+module.exports.validateEventInput = (code, name, session) => {
   const errors = {};
   if (code.trim() === "") {
-    errors.code = "Course Code must not be empty";
+    errors.code = "Event Code must not be empty";
   }
   if (name.trim() === "") {
-    errors.name = "Course name must not be empty";
+    errors.name = "Event name must not be empty";
   }
   if (session.trim() === "") {
-    errors.section = "Course session must not be empty";
+    errors.section = "Event session must not be empty";
   }
   return {
     errors,

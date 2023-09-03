@@ -47,7 +47,7 @@ mongoose
 
   Postman
 {
-  "query": "mutation {createCourse(courseInput: {code: \"123\", section: \"123\", name: \"123\"}) {name}}"
+  "query": "mutation {createEvent(eventInput: {code: \"123\", section: \"123\", name: \"123\"}) {name}}"
 }
 
   mutation{
@@ -66,7 +66,7 @@ mongoose
 }
 
   mutation{
-  createCourse(courseInput:{
+  createEvent(eventInput:{
     name: "Test",
     code:"test",
     section: "test"
@@ -82,12 +82,12 @@ mongoose
 }
 
   mutation{
-  deleteCourse(courseID:"5ee1de0f270b0f8774f94094")
+  deleteEvent(eventID:"5ee1de0f270b0f8774f94094")
  {
   name
   creator{
     firstName
-    createdCourses{
+    createdEvents{
       name
     }
   }

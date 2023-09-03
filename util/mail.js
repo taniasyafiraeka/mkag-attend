@@ -13,9 +13,9 @@ oAuth2Client.setCredentials({
 
 const {
   Welcome,
-  KickStudent,
-  DeleteCourse,
-  WithdrawCourse,
+  KickMember,
+  DeleteEvent,
+  WithdrawEvent,
   CreateAttendance,
 } = require("./mailTemplate");
 
@@ -38,35 +38,35 @@ const getEmailData = (to, firstName, template, payload) => {
         html: Welcome(firstName),
       };
       break;
-    case MAIL_TEMPLATE_TYPE.KickStudent:
+    case MAIL_TEMPLATE_TYPE.KickMember:
       data = {
         from: "Attendlytical <attendlytical@gmail.com>",
         to,
-        subject: `Course ID: ${payload.course.shortID} - You had been kicked out`,
-        html: KickStudent(firstName, payload),
+        subject: `Event ID: ${payload.event.shortID} - You had been kicked out`,
+        html: KickMember(firstName, payload),
       };
       break;
-    case MAIL_TEMPLATE_TYPE.DeleteCourse:
+    case MAIL_TEMPLATE_TYPE.DeleteEvent:
       data = {
         from: "Attendlytical <attendlytical@gmail.com>",
         to,
-        subject: `Course ID: ${payload.course.shortID} - A course was deleted by course owner`,
-        html: DeleteCourse(firstName, payload),
+        subject: `Event ID: ${payload.event.shortID} - A event was deleted by event owner`,
+        html: DeleteEvent(firstName, payload),
       };
       break;
-    case MAIL_TEMPLATE_TYPE.WithdrawCourse:
+    case MAIL_TEMPLATE_TYPE.WithdrawEvent:
       data = {
         from: "Attendlytical <attendlytical@gmail.com>",
         to,
-        subject: `Course ID: ${payload.course.shortID} - A student had withdrawn from your course`,
-        html: WithdrawCourse(firstName, payload),
+        subject: `Event ID: ${payload.event.shortID} - A member had withdrawn from your event`,
+        html: WithdrawEvent(firstName, payload),
       };
       break;
       case MAIL_TEMPLATE_TYPE.CreateAttendance:
         data = {
           from: "Attendlytical <attendlytical@gmail.com>",
           to,
-          subject: `Course ID: ${payload.course.shortID} - New Attendance`,
+          subject: `Event ID: ${payload.event.shortID} - New Attendance`,
           html: CreateAttendance(firstName, payload),
         };
         break;

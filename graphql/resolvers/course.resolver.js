@@ -2,16 +2,16 @@ var shortid = require("shortid");
 const { UserInputError } = require("apollo-server");
 const Attendance = require("../../models/attendance.model");
 
-const Course = require("../../models/course.model");
+const Event = require("../../models/event.model");
 const Person = require("../../models/person.model");
 const Notification = require("../../models/notification.model");
 
-const { validateCourseInput } = require("../../util/validators");
+const { validateEventInput } = require("../../util/validators");
 
 const {
   people,
-  CoursegqlParser,
-  CoursesgqlParser,
+  EventgqlParser,
+  EventsgqlParser,
 } = require("./merge");
 
 const checkAuth = require("../../util/check-auth");
@@ -23,19 +23,19 @@ const { MAIL_TEMPLATE_TYPE } = require("../../globalData");
 
 module.exports = {
   Query: {
-    async getCourses(_, { currPage, pageSize }, context) {
+    async getEvents(_, { currPage, pageSize }, context) {
       const currUser = checkAuth(context);
       try {
-        let coursesEnrolled = [];
+        let eventsEnrolled = [];
         if (currUser.userLevel === 0) {
-          coursesEnrolled = await Course.find({
-            enrolledStudents: currUser._id,
+          eventsEnrolled = await Event.find({
+            enrolledMembers: currUser._id,
           })
             .skip((currPage - 1) * pageSize)
             .limit(pageSize)
             .sort({ _id: -1 });
         } else if (currUser.userLevel === 1) {
-          coursesEnrolled = await Course.find({
+          eventsEnrolled = await Event.find({
             creator: currUser._id,
           })
             .skip((currPage - 1) * pageSize)
@@ -44,33 +44,33 @@ module.exports = {
         } else {
           throw new Error("Something wrong");
         }
-        return CoursesgqlParser(coursesEnrolled);
+        return EventsgqlParser(eventsEnrolled);
       } catch (err) {
         throw err;
       }
     },
 
-    async getCoursesCount(_, __, context) {
+    async getEventsCount(_, __, context) {
       const currUser = checkAuth(context);
       var count = 0;
       try {
         if (currUser.userLevel === 0) {
-          const courseEnrolled = await Course.find(
+          const eventEnrolled = await Event.find(
             {
               creator: currUser._id,
             },
             ["id"]
           );
-          count = courseEnrolled.length;
+          count = eventEnrolled.length;
         } else if (currUser.userLevel === 1) {
-          const courseCreated = await Course.find(
+          const eventCreated = await Event.find(
             {
               creator: currUser._id,
             },
             ["id"]
           );
 
-          count = courseCreated.length;
+          count = eventCreated.length;
         } else {
           throw new Error("Something wrong");
         }
@@ -81,74 +81,74 @@ module.exports = {
       }
     },
 
-    async getCourse(_, { courseID }, context) {
+    async getEvent(_, { eventID }, context) {
       const currUser = checkAuth(context);
       let errors = {};
       try {
-        const course = await Course.findOne({ shortID: courseID });
-        if (!course) {
-          errors.general = "Course do not exist";
-          throw new UserInputError("Course do not exist", { errors });
+        const event = await Event.findOne({ shortID: eventID });
+        if (!event) {
+          errors.general = "Event do not exist";
+          throw new UserInputError("Event do not exist", { errors });
         }
         if (currUser.userLevel === 1) {
-          if (course.creator != currUser._id) {
-            errors.general = "Access forbidden. You do not own this course.";
+          if (event.creator != currUser._id) {
+            errors.general = "Access forbidden. You do not own this event.";
             throw new UserInputError(
-              "Access forbidden. You do not own this course.",
+              "Access forbidden. You do not own this event.",
               {
                 errors,
               }
             );
           }
         } else {
-          const student = course.enrolledStudents.find(
+          const member = event.enrolledMembers.find(
             (s) => s == currUser._id
           );
-          if (!student) {
+          if (!member) {
             errors.general =
-              "Access forbidden. You do not enrol to this course.";
+              "Access forbidden. You do not enrol to this event.";
             throw new UserInputError(
-              "Access forbidden. You do not enrol to this course.",
+              "Access forbidden. You do not enrol to this event.",
               {
                 errors,
               }
             );
           }
         }
-        return CoursegqlParser(course);
+        return EventgqlParser(event);
       } catch (err) {
         throw err;
       }
     },
 
-    async getParticipants(_, { courseID }, context) {
+    async getParticipants(_, { eventID }, context) {
       const currUser = checkAuth(context);
       let errors = {};
       try {
-        const course = await Course.findOne({ shortID: courseID });
-        if (!course) {
-          errors.general = "Course do not exist";
-          throw new UserInputError("Course do not exist", { errors });
+        const event = await Event.findOne({ shortID: eventID });
+        if (!event) {
+          errors.general = "Event do not exist";
+          throw new UserInputError("Event do not exist", { errors });
         }
         if (currUser.userLevel === 1) {
-          if (course.creator != currUser._id) {
-            errors.general = "Access forbidden. You do not own this course.";
+          if (event.creator != currUser._id) {
+            errors.general = "Access forbidden. You do not own this event.";
             throw new UserInputError(
-              "Access forbidden. You do not own this course.",
+              "Access forbidden. You do not own this event.",
               {
                 errors,
               }
             );
           }
         } else {
-          const student = course.enrolledStudents.find(
+          const member = event.enrolledMembers.find(
             (s) => s == currUser._id
           );
-          if (!student) {
+          if (!member) {
             errors.general =
-              "Access forbidden. You do not enrol to this course.";
+              "Access forbidden. You do not enrol to this event.";
             throw new UserInputError(
-              "Access forbidden. You do not enrol to this course.",
+              "Access forbidden. You do not enrol to this event.",
               {
                 errors,
               }
@@ -156,7 +156,7 @@ module.exports = {
           }
         }
 
-        return people(course.enrolledStudents);
+        return people(event.enrolledMembers);
         
       } catch (err) {
         throw err;
@@ -166,12 +166,12 @@ module.exports = {
   Mutation: {
  
     /*
-        Course owner:
+        Event owner:
     */
-    async createCourse(_, { courseInput: { code, name, session } }, context) {
+    async createEvent(_, { eventInput: { code, name, session } }, context) {
       const currUser = checkAuth(context);
 
-      const { valid, errors } = validateCourseInput(code, name, session);
+      const { valid, errors } = validateEventInput(code, name, session);
 
       if (!valid) {
         throw new UserInputError("Errors", { errors });
@@ -179,9 +179,9 @@ module.exports = {
 
       try {
         if (currUser.userLevel !== 1) {
-          errors.general = "You are not a lecturer but want to create course!";
+          errors.general = "You are not a administrator but want to create event!";
           throw new UserInputError(
-            "You are not a lecturer but want to create course!",
+            "You are not a administrator but want to create event!",
             { errors }
           );
         }
@@ -190,10 +190,10 @@ module.exports = {
         let id;
         do {
           id = shortid.generate();
-          existingShortID = await Course.find({ shortID: id });
+          existingShortID = await Event.find({ shortID: id });
         } while (existingShortID.length > 0);
 
-        const newCourse = new Course({
+        const newEvent = new Event({
           creator: currUser._id,
           shortID: id,
           code,
@@ -201,163 +201,163 @@ module.exports = {
           session,
         });
 
-        await newCourse.save();
+        await newEvent.save();
 
-        return CoursegqlParser(newCourse);
+        return EventgqlParser(newEvent);
       } catch (err) {
         throw err;
       }
     },
 
-    async deleteCourse(_, { courseID }, context) {
+    async deleteEvent(_, { eventID }, context) {
       const currUser = checkAuth(context);
       let errors = {};
       try {
         if (currUser.userLevel !== 1) {
-          errors.general = "You are not a lecturer but want to delete course!";
+          errors.general = "You are not a administrator but want to delete event!";
           throw new UserInputError(
-            "You are not a lecturer but want to delete course!",
+            "You are not a administrator but want to delete event!",
             { errors }
           );
         }
 
-        const course2Delete = await Course.findById(courseID);
+        const event2Delete = await Event.findById(eventID);
 
-        if (!course2Delete) {
-          errors.general = "Delete a non existing course";
-          throw new UserInputError("Delete a non existing course", {
+        if (!event2Delete) {
+          errors.general = "Delete a non existing event";
+          throw new UserInputError("Delete a non existing event", {
             errors,
           });
         }
-        await Course.deleteOne(course2Delete);
+        await Event.deleteOne(event2Delete);
 
         //also delete the enrolment
-        const enrolments = await PendingEnrolledCourse.find({
-          course: courseID,
+        const enrolments = await PendingEnrolledEvent.find({
+          event: eventID,
         });
         enrolments.map(async (enrolment) => {
-          //notify the student who enrol still pending in this course
+          //notify the member who enrol still pending in this event
           const sendNotification = new Notification({
-            receiver: enrolment.student,
-            title: `Course Deleted Notification - Course ID: ${course2Delete.shortID}`,
-            content: `Course owner: [${currUser.firstName} ${currUser.lastName}] had deleted the course: ${course2Delete.name} (${course2Delete.code}-${course2Delete.session}),
+            receiver: enrolment.member,
+            title: `Event Deleted Notification - Event ID: ${event2Delete.shortID}`,
+            content: `Event owner: [${currUser.firstName} ${currUser.lastName}] had deleted the event: ${event2Delete.name} (${event2Delete.code}-${event2Delete.session}),
              hence deleted from your enrolment pending list`,
           });
           await sendNotification.save();
 
-          const studentDoc = await Person.findById(enrolment.student);
-          //notify student through email
+          const memberDoc = await Person.findById(enrolment.member);
+          //notify member through email
           await sendEmail(
-            studentDoc.email,
-            studentDoc.firstName,
-            MAIL_TEMPLATE_TYPE.DeletePendingCourse,
-            { owner: currUser, course: course2Delete }
+            memberDoc.email,
+            memberDoc.firstName,
+            MAIL_TEMPLATE_TYPE.DeletePendingEvent,
+            { owner: currUser, event: event2Delete }
           );
         });
 
-        await PendingEnrolledCourse.deleteMany({ course: courseID });
+        await PendingEnrolledEvent.deleteMany({ event: eventID });
 
-        //delete the pending course
+        //delete the pending event
 
         //delete all related attendance
-        const attendanceList = await Attendance.find({ course: courseID });
+        const attendanceList = await Attendance.find({ event: eventID });
 
         attendanceList.map(async (attendance) => {
           //delete all related expression
           await Expression.deleteMany({ attendance: attendance._id });
         });
 
-        await Attendance.deleteMany({ course: courseID });
+        await Attendance.deleteMany({ event: eventID });
 
-        //TODO: Notification to student who enrol to this
-        course2Delete.enrolledStudents.map(async (stud) => {
+        //TODO: Notification to member who enrol to this
+        event2Delete.enrolledMembers.map(async (stud) => {
           //delete all related warning
-          await Warning.deleteOne({ student: stud, course: courseID });
+          await Warning.deleteOne({ member: stud, event: eventID });
 
           notification = new Notification({
             receiver: stud,
-            title: `Course Deleted Notification - Course ID: ${course2Delete.shortID}`,
-            content: `Course owner: [${currUser.firstName} ${currUser.lastName}] had deleted the course: ${course2Delete.name} (${course2Delete.code}-${course2Delete.session})`,
+            title: `Event Deleted Notification - Event ID: ${event2Delete.shortID}`,
+            content: `Event owner: [${currUser.firstName} ${currUser.lastName}] had deleted the event: ${event2Delete.name} (${event2Delete.code}-${event2Delete.session})`,
           });
 
           await notification.save();
 
-          const studentDoc = await Person.findById(stud);
+          const memberDoc = await Person.findById(stud);
 
-          //notify student through email
+          //notify member through email
           await sendEmail(
-            studentDoc.email,
-            studentDoc.firstName,
-            MAIL_TEMPLATE_TYPE.DeleteCourse,
-            { owner: currUser, course: course2Delete }
+            memberDoc.email,
+            memberDoc.firstName,
+            MAIL_TEMPLATE_TYPE.DeleteEvent,
+            { owner: currUser, event: event2Delete }
           );
         });
-        return CoursegqlParser(course2Delete);
+        return EventgqlParser(event2Delete);
       } catch (err) {
         throw err;
       }
     },
 
    
-    async withdrawCourse(_, { courseID }, context) {
+    async withdrawEvent(_, { eventID }, context) {
       const currUser = checkAuth(context);
       let errors = {};
       try {
         if (currUser.userLevel !== 0) {
-          errors.general = "You are not a student but want to unenrol course!";
+          errors.general = "You are not a member but want to unenrol event!";
           throw new UserInputError(
-            "You are not a student but want to unenrol course!",
+            "You are not a member but want to unenrol event!",
             { errors }
           );
         }
 
-        const course2withdraw = await Course.findById(courseID);
-        if (!course2withdraw) {
-          errors.general = "Course not exist but student wish to withdraw!";
+        const event2withdraw = await Event.findById(eventID);
+        if (!event2withdraw) {
+          errors.general = "Event not exist but member wish to withdraw!";
           throw new UserInputError(
-            "Course not exist but student wish to withdraw!",
+            "Event not exist but member wish to withdraw!",
             { errors }
           );
         }
-        const student = course2withdraw.enrolledStudents.find(
+        const member = event2withdraw.enrolledMembers.find(
           (s) => s == currUser._id
         );
 
-        if (!student) {
-          errors.general = "Student do not enrol the course";
-          throw new UserInputError("Student do not enrol the course", {
+        if (!member) {
+          errors.general = "Member do not enrol the event";
+          throw new UserInputError("Member do not enrol the event", {
             errors,
           });
         }
 
-        await Course.findByIdAndUpdate(
-          course2withdraw.id,
-          { $pull: { enrolledStudents: currUser._id } },
+        await Event.findByIdAndUpdate(
+          event2withdraw.id,
+          { $pull: { enrolledMembers: currUser._id } },
           { safe: true, upsert: true }
         );
 
-        const owner = await Person.findById(course2withdraw.creator);
+        const owner = await Person.findById(event2withdraw.creator);
 
         if (!owner) {
-          errors.general = "Course owner do not exist";
-          throw new UserInputError("Course owner do not exist", { errors });
+          errors.general = "Event owner do not exist";
+          throw new UserInputError("Event owner do not exist", { errors });
         }
 
-        await Warning.deleteOne({ student: currUser._id, course: courseID });
+        await Warning.deleteOne({ member: currUser._id, event: eventID });
 
-        //notify lecturer
+        //notify administrator
         notification = new Notification({
           receiver: owner.id,
-          title: `Course Withdrawal - Course ID: ${course2withdraw.shortID}`,
-          content: `Student: [${currUser.firstName} ${currUser.lastName}(${currUser.cardID})] had withdrawn the course: ${course2withdraw.name} (${course2withdraw.code}-${course2withdraw.session}).`,
+          title: `Event Withdrawal - Event ID: ${event2withdraw.shortID}`,
+          content: `Member: [${currUser.firstName} ${currUser.lastName}(${currUser.cardID})] had withdrawn the event: ${event2withdraw.name} (${event2withdraw.code}-${event2withdraw.session}).`,
         });
 
-        //notify lecturer through email
+        //notify administrator through email
         await sendEmail(
           owner.email,
           owner.firstName,
-          MAIL_TEMPLATE_TYPE.WithdrawCourse,
-          { student: currUser, course: course2withdraw }
+          MAIL_TEMPLATE_TYPE.WithdrawEvent,
+          { member: currUser, event: event2withdraw }
         );
 
         await notification.save();
@@ -368,42 +368,42 @@ module.exports = {
       }
     },
 
-    async enrolCourse(_, { courseID }, context) {
+    async enrolEvent(_, { eventID }, context) {
       const currUser = checkAuth(context);
       let errors = {};
       try {
-        const course = await Course.findOne({ shortID: courseID });
+        const event = await Event.findOne({ shortID: eventID });
 
 
         if (currUser.userLevel !== 0) {
           errors.general =
-            "Added person is a not student and is not allowed to join any course";
+            "Added person is a not member and is not allowed to join any event";
           throw new UserInputError(
-            "Added person is a not student and is not allowed to join any course",
+            "Added person is a not member and is not allowed to join any event",
             { errors }
           );
         }
 
-        if (!course) {
-          errors.general = "Course do not exist";
-          throw new UserInputError("Course do not exist", { errors });
+        if (!event) {
+          errors.general = "Event do not exist";
+          throw new UserInputError("Event do not exist", { errors });
         }
 
 
-        if (course.enrolledStudents.length > 0) {
-          const student = course.enrolledStudents.find(
+        if (event.enrolledMembers.length > 0) {
+          const member = event.enrolledMembers.find(
             (s) => s == currUser._id
           );
 
-          if (student) {
-            errors.general = "You already enrolled the course!";
-            throw new UserInputError("You already enrolled the course", {
+          if (member) {
+            errors.general = "You already enrolled the event!";
+            throw new UserInputError("You already enrolled the event", {
               errors,
             });
           }
         }
-        course.enrolledStudents.push(currUser._id);
-        await course.save();
+        event.enrolledMembers.push(currUser._id);
+        await event.save();
         
         return "Enrol Success";
       } catch (err) {
@@ -411,19 +411,19 @@ module.exports = {
       }
     },
 
-    async kickParticipant(_, { participantID, courseID }, context) {
+    async kickParticipant(_, { participantID, eventID }, context) {
       const currUser = checkAuth(context);
       let errors = {};
       try {
-        const course = await Course.findOne({ shortID: courseID });
+        const event = await Event.findOne({ shortID: eventID });
         const kickedPerson = await Person.findById(participantID);
 
-        if (!course) {
-          errors.general = "Course do not exist";
-          throw new UserInputError("Course do not exist", { errors });
+        if (!event) {
+          errors.general = "Event do not exist";
+          throw new UserInputError("Event do not exist", { errors });
         }
 
-        if (course.creator != currUser._id) {
+        if (event.creator != currUser._id) {
           errors.general = "You cannot kick the participant";
           throw new Error("You cannot kick the participant", { errors });
         }
@@ -433,38 +433,38 @@ module.exports = {
           throw new UserInputError("Participant do not exist", { errors });
         }
 
-        const checkStudentExist = course.enrolledStudents.find(
+        const checkMemberExist = event.enrolledMembers.find(
           (id) => id == participantID
         );
-        if (!checkStudentExist) {
-          errors.general = "Participant do not exist in this course";
-          throw new UserInputError("Participant do not exist in this course", {
+        if (!checkMemberExist) {
+          errors.general = "Participant do not exist in this event";
+          throw new UserInputError("Participant do not exist in this event", {
             errors,
           });
         }
 
-        await Course.findOneAndUpdate(
-          { shortID: courseID },
-          { $pull: { enrolledStudents: participantID } },
+        await Event.findOneAndUpdate(
+          { shortID: eventID },
+          { $pull: { enrolledMembers: participantID } },
           { safe: true, upsert: true }
         );
 
-        await Warning.deleteOne({ student: participantID, course: course.id });
+        await Warning.deleteOne({ member: participantID, event: event.id });
 
         const notification = new Notification({
           receiver: participantID,
-          title: `Kicked Out Notification - Course ID: ${courseID}`,
-          content: `Course owner: [${currUser.firstName} ${currUser.lastName}] have kicked you out from the course: ${course.name} (${course.code}-${course.session})`,
+          title: `Kicked Out Notification - Event ID: ${eventID}`,
+          content: `Event owner: [${currUser.firstName} ${currUser.lastName}] have kicked you out from the event: ${event.name} (${event.code}-${event.session})`,
         });
 
         await notification.save();
 
-        //notify student through email
+        //notify member through email
         await sendEmail(
           kickedPerson.email,
           kickedPerson.firstName,
-          MAIL_TEMPLATE_TYPE.KickStudent,
-          { owner: currUser, course: course }
+          MAIL_TEMPLATE_TYPE.KickMember,
+          { owner: currUser, event: event }
         );
 
         return "Kick Success!";

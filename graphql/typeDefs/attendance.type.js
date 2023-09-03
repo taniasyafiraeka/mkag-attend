@@ -7,27 +7,27 @@ module.exports = gql`
 
   type Attendance {
     _id: ID!
-    course: Course!
+    event: Event!
     time: String!
     date: String!
     mode: String!
     isOn: Boolean!
   }
 
-  type AttendanceListInCourse {
-    course: Course!
+  type AttendanceListInEvent {
+    event: Event!
     attendanceList: [Attendance!]
   }
 
   input attendanceInput {
     time: String!
     date: String!
-    courseID: String!
+    eventID: String!
   }
   extend type Query {
     getAttendance(attendanceID: ID!): Attendance!
-    getAttendanceListCountInCourse(courseID: String!): Int!
-    getAttendanceListInCourse(courseID: String!, currPage: Int!, pageSize: Int!): AttendanceListInCourse!
+    getAttendanceListCountInEvent(eventID: String!): Int!
+    getAttendanceListInEvent(eventID: String!, currPage: Int!, pageSize: Int!): AttendanceListInEvent!
   }
   extend type Mutation {
     createAttendance(attendanceInput: attendanceInput!): Attendance!
