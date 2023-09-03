@@ -28,4 +28,4 @@ const courseSchema=new Schema({
 },
 {timestamps: true})
 
-module.exports=model('Course', courseSchema)
+module.exports=model('Event', courseSchema)
