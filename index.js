@@ -16,7 +16,7 @@ var env = process.env.NODE_ENV || 'development';
 
 const server = new ApolloServer({
   cors: {
-    origin: env=="development"? ['http://localhost:3000'] : ['https://attendlytical.netlify.app'],
+    origin: '*',
     credentials: true
   },
   typeDefs,
