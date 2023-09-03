@@ -118,7 +118,7 @@ module.exports = {
           userLevel,
         });
 
-        //for student
+        //for member
         if (newPerson.userLevel === 0) {
           const notification = new Notification({
             receiver: newPerson.id,
@@ -242,7 +242,7 @@ module.exports = {
           throw new UserInputError('User do not exist!', { errors });
         }
 
-        //for student
+        //for member
         if (updatedPerson.userLevel === 0) {
           const notification = new Notification({
             receiver: updatedPerson.id,

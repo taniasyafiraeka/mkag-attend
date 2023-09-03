@@ -1,42 +1,42 @@
 module.exports = {
   Query: {},
   Mutation: {
-    async testingRegisterStudent(_, { courseID }) {
+    async testingRegisterMember(_, { eventID }) {
       try {
         for (i = 0; i < 10; i++) {
           const password = "123";
           const hashedPassword = await bcrypt.hash(password, 12);
 
           const newPerson = new Person({
-            firstName: "Student FN " + i,
-            lastName: "Student LN " + i,
-            email: "Student" + i + "@gmail.com",
+            firstName: "Member FN " + i,
+            lastName: "Member LN " + i,
+            email: "Member" + i + "@gmail.com",
             cardID: "A17CS0022",
             password: hashedPassword,
             userLevel: 0,
           });
           await newPerson.save();
-          const course = await Course.findOne({ shortID: courseID });
+          const event = await Event.findOne({ shortID: eventID });
 
-          course.enrolledStudents.push(newPerson._id);
-          course.save();
+          event.enrolledMembers.push(newPerson._id);
+          event.save();
         }
-        return "Create 50 student";
+        return "Create 50 member";
       } catch (err) {
         throw err;
       }
     },
     //TODO:/*Test*/
-    async testingCreateCourse(_, __, context) {
+    async testingCreateEvent(_, __, context) {
       const currUser = checkAuth(context);
       let errors = {};
 
       try {
         if (currUser.userLevel !== 1) {
           errors.general =
-            "The user is not a lecturer but want to create course!";
+            "The user is not a administrator but want to create event!";
           throw new UserInputError(
-            "The user is not a lecturer but want to create course!",
+            "The user is not a administrator but want to create event!",
             { errors }
           );
         }
@@ -45,52 +45,52 @@ module.exports = {
           let id;
           do {
             id = shortid.generate();
-            existingShortID = await Course.find({ shortID: id });
+            existingShortID = await Event.find({ shortID: id });
           } while (existingShortID.length > 0);
-          const newCourse = new Course({
-            shortID: "Course_" + id,
+          const newEvent = new Event({
+            shortID: "Event_" + id,
             creator: currUser._id,
             code: i + " SCSV2013",
             name: i + " Graphic",
             session: "20192020-01",
           });
-          await newCourse.save();
+          await newEvent.save();
         }
-        return "Create 50 Course...";
+        return "Create 50 Event...";
       } catch (err) {
         throw err;
       }
     },
     //TODO:/*Test*/
-    async testingDeleteAllCourse(_, __, context) {
+    async testingDeleteAllEvent(_, __, context) {
       const currUser = checkAuth(context);
       let errors = {};
 
       try {
         if (currUser.userLevel !== 1) {
           errors.general =
-            "The user is not a lecturer but want to delete course!";
+            "The user is not a administrator but want to delete event!";
           throw new UserInputError(
-            "The user is not a lecturer but want to delete course!",
+            "The user is not a administrator but want to delete event!",
             { errors }
           );
         }
 
-        await Course.deleteMany({ create: currUser._id });
+        await Event.deleteMany({ create: currUser._id });
 
-        return "CDelete 50 Course...";
+        return "CDelete 50 Event...";
       } catch (err) {
         throw err;
       }
     },
   },
-  async obtainStudentWarning(_, { participantID, courseID }, context) {
+  async obtainMemberWarning(_, { participantID, eventID }, context) {
     const currUser = checkAuth(context);
     let errors = {};
     try {
       const warning = await Warning.findOne({
-        student: participantID,
-        course: courseID,
+        member: participantID,
+        event: eventID,
       });
 
       if (!warning) return 0;

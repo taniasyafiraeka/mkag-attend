@@ -15,19 +15,19 @@ module.exports.Welcome = (firstName) => {
 };
 
 
-module.exports.KickStudent = (firstName, payload) => {
+module.exports.KickMember = (firstName, payload) => {
   return `
         <p>Hi ${firstName}, </p>
         <p>
-          Course owner had kicked you out from the course below. 
+          Event owner had kicked you out from the event below. 
         </p>
         
-        <p>---------------------Course Detail---------------------</p>
-        <p>Course ID: <strong>${payload.course.shortID}</strong> </p>
-        <p>Course Owner: <strong>${payload.owner.firstName} ${payload.owner.lastName}</strong></p>
-        <p>Course Code: <strong>${payload.course.code}</strong> </p>
-        <p>Course Name: <strong>${payload.course.name}</strong> </p>
-        <p>Course Session: <strong>${payload.course.session}</strong> </p>
+        <p>---------------------Event Detail---------------------</p>
+        <p>Event ID: <strong>${payload.event.shortID}</strong> </p>
+        <p>Event Owner: <strong>${payload.owner.firstName} ${payload.owner.lastName}</strong></p>
+        <p>Event Code: <strong>${payload.event.code}</strong> </p>
+        <p>Event Name: <strong>${payload.event.name}</strong> </p>
+        <p>Event Session: <strong>${payload.event.session}</strong> </p>
         
         Click <a href=${OfficialURL}>here</a> to sign in
         <p>
@@ -37,19 +37,19 @@ module.exports.KickStudent = (firstName, payload) => {
     `;
 };
 
-module.exports.DeleteCourse = (firstName, payload) => {
+module.exports.DeleteEvent = (firstName, payload) => {
   return `
         <p>Hi ${firstName}, </p>
         <p>
-          Course owner had deleted the course below, hence disappeared in your enrolled course list. Sayonara.
+          Event owner had deleted the event below, hence disappeared in your enrolled event list. Sayonara.
         </p>
       
-        <p>---------------------Course Detail---------------------</p>
-        <p>Course ID: <strong>${payload.course.shortID}</strong> </p>
-        <p>Course Owner: <strong>${payload.owner.firstName} ${payload.owner.lastName}</strong></p>
-        <p>Course Code: <strong>${payload.course.code}</strong> </p>
-        <p>Course Name: <strong>${payload.course.name}</strong> </p>
-        <p>Course Session: <strong>${payload.course.session}</strong> </p>
+        <p>---------------------Event Detail---------------------</p>
+        <p>Event ID: <strong>${payload.event.shortID}</strong> </p>
+        <p>Event Owner: <strong>${payload.owner.firstName} ${payload.owner.lastName}</strong></p>
+        <p>Event Code: <strong>${payload.event.code}</strong> </p>
+        <p>Event Name: <strong>${payload.event.name}</strong> </p>
+        <p>Event Session: <strong>${payload.event.session}</strong> </p>
       
         Click <a href=${OfficialURL}>here</a> to sign in
         <p>
@@ -59,26 +59,26 @@ module.exports.DeleteCourse = (firstName, payload) => {
     `;
 };
 
-module.exports.WithdrawCourse = (firstName, payload) => {
+module.exports.WithdrawEvent = (firstName, payload) => {
   return `
     <p>Hi ${firstName}, </p>
 
     <p>
-      A student had withdrawn from your course below. 
+      A member had withdrawn from your event below. 
     </p>
     
-    <p>---------------------Student Detail---------------------</p>
-    <p>First Name: <strong>${payload.student.firstName}</strong></p>
-    <p>Last Name: <strong>${payload.student.lastName}</strong> </p>
-    <p>Matric No: <strong>${payload.student.cardID}</strong> </p>
-    <p>Email: <strong>${payload.student.email}</strong> </p>
+    <p>---------------------Member Detail---------------------</p>
+    <p>First Name: <strong>${payload.member.firstName}</strong></p>
+    <p>Last Name: <strong>${payload.member.lastName}</strong> </p>
+    <p>Matric No: <strong>${payload.member.cardID}</strong> </p>
+    <p>Email: <strong>${payload.member.email}</strong> </p>
     <br />
-    <p>---------------------Enrolled Course Detail---------------------</p>
-    <p>Course ID: <strong>${payload.course.shortID}</strong> </p>
-    <p>Course Owner: <strong>You</strong></p>
-    <p>Course Code: <strong>${payload.course.code}</strong> </p>
-    <p>Course Name: <strong>${payload.course.name}</strong> </p>
-    <p>Course Session: <strong>${payload.course.session}</strong> </p>
+    <p>---------------------Enrolled Event Detail---------------------</p>
+    <p>Event ID: <strong>${payload.event.shortID}</strong> </p>
+    <p>Event Owner: <strong>You</strong></p>
+    <p>Event Code: <strong>${payload.event.code}</strong> </p>
+    <p>Event Name: <strong>${payload.event.name}</strong> </p>
+    <p>Event Session: <strong>${payload.event.session}</strong> </p>
 
     Click <a href=${OfficialURL}>here</a> to sign in
     <p>
@@ -95,17 +95,17 @@ module.exports.CreateAttendance = (firstName, payload) => {
           You have a new attendance. 
         </p>
         
-        <p>---------------------Course Detail---------------------</p>
-        <p>Course ID: <strong>${payload.course.shortID}</strong> </p>
-        <p>Course Owner: <strong>${payload.owner.firstName} ${payload.owner.lastName}</strong></p>
-        <p>Course Code: <strong>${payload.course.code}</strong> </p>
-        <p>Course Name: <strong>${payload.course.name}</strong> </p>
-        <p>Course Session: <strong>${payload.course.session}</strong> </p>
+        <p>---------------------Event Detail---------------------</p>
+        <p>Event ID: <strong>${payload.event.shortID}</strong> </p>
+        <p>Event Owner: <strong>${payload.owner.firstName} ${payload.owner.lastName}</strong></p>
+        <p>Event Code: <strong>${payload.event.code}</strong> </p>
+        <p>Event Name: <strong>${payload.event.name}</strong> </p>
+        <p>Event Session: <strong>${payload.event.session}</strong> </p>
         
 
-        <h3>Attendance Room ID: ${payload.course.attendanceID}</h3>
+        <h3>Attendance Room ID: ${payload.event.attendanceID}</h3>
 
-        Enter room here: <a href=${payload.course.attendanceURL}>here</a>
+        Enter room here: <a href=${payload.event.attendanceURL}>here</a>
         Click <a href=${OfficialURL}>here</a> to sign in
         <p>
         Thanks, <br/>

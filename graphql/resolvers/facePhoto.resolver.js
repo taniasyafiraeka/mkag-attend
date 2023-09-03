@@ -2,14 +2,14 @@ const { UserInputError } = require("apollo-server");
 
 const Person = require("../../models/person.model");
 const FacePhoto = require("../../models/facePhoto.model");
-const Course = require("../../models/course.model");
+const Event = require("../../models/event.model");
 
 const checkAuth = require("../../util/check-auth");
 const { cloudinary } = require("../../util/cloudinary");
 
 const {
   PersongqlParser,
-  CoursegqlParser,
+  EventgqlParser,
   FacePhotogqlParser,
   FacePhotosgqlParser,
 } = require("./merge");
@@ -58,33 +58,33 @@ module.exports = {
         throw err;
       }
     },
-    async getFaceMatcherInCourse(_, { courseID }, context) {
+    async getFaceMatcherInEvent(_, { eventID }, context) {
       const currUser = checkAuth(context);
 
       try {
-        const course = await Course.findOne({ shortID: courseID });
-        if (!course){
-          throw new Error("Course does not exist.");
+        const event = await Event.findOne({ shortID: eventID });
+        if (!event){
+          throw new Error("Event does not exist.");
         }
         if (
-          course.creator != currUser._id &&
-          !course.enrolledStudents.find((stud) => stud._id == currUser._id)
+          event.creator != currUser._id &&
+          !event.enrolledMembers.find((stud) => stud._id == currUser._id)
         ) {
           throw new Error(
-            "Access Prohibited. You are not the owner of the course or join this course"
+            "Access Prohibited. You are not the owner of the event or join this event"
           );
         }
-        const matcher = course.enrolledStudents.map(async (stud) => {
+        const matcher = event.enrolledMembers.map(async (stud) => {
           const photos = await FacePhoto.find({ creator: stud });
-          const student = await Person.findById(stud);
+          const member = await Person.findById(stud);
 
           return {
-            student: PersongqlParser(student),
+            member: PersongqlParser(member),
             facePhotos: photos.map((photo) => FacePhotogqlParser(photo)),
           };
         });
 
-        return { course: CoursegqlParser(course), matcher: matcher };
+        return { event: EventgqlParser(event), matcher: matcher };
       } catch (err) {
         throw err;
       }

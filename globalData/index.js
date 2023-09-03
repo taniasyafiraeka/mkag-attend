@@ -1,8 +1,8 @@
 module.exports.MAIL_TEMPLATE_TYPE={
     Welcome: "Welcome",
-    KickStudent: "Kick Student",
-    DeleteCourse: "Delete Course",
-    WithdrawCourse: "Withdraw Course",
+    KickMember: "Kick Member",
+    DeleteEvent: "Delete Event",
+    WithdrawEvent: "Withdraw Event",
     CreateAttendance: "Create Attendance",
 
 }

@@ -1,6 +1,6 @@
 const {model, Schema}=require('mongoose')
 
-const courseSchema=new Schema({
+const eventSchema=new Schema({
     creator:{
         type: Schema.Types.ObjectId,
         required: true
@@ -21,11 +21,11 @@ const courseSchema=new Schema({
         type: String,
         required: true
     },
-    enrolledStudents: {
+    enrolledMembers: {
         type: [Schema.Types.ObjectId],
         ref: 'Person'
     }
 },
 {timestamps: true})
 
-module.exports=model('Event', courseSchema)
+module.exports=model('Event', eventSchema)

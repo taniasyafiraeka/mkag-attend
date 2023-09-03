@@ -4,13 +4,13 @@ const checkAuth = require("../../util/check-auth");
 
 module.exports = {
   Query: {
-    async getTrx(_, { trxInput: { attendanceID, studentID } }, context) {
+    async getTrx(_, { trxInput: { attendanceID, memberID } }, context) {
       const user = checkAuth(context);
 
       try {
         const trx = await Trx.findOne({
           attendance: attendanceID,
-          student: studentID,
+          member: memberID,
         });
         if (!trx) throw new Error("Transaction does not exist");
         return TrxgqlParser(trx);
@@ -32,19 +32,19 @@ module.exports = {
     },
   },
   Mutation: {
-    async createTrx(_, { trxInput: { attendanceID, studentID } }, context) {
+    async createTrx(_, { trxInput: { attendanceID, memberID } }, context) {
       const user = checkAuth(context);
 
       try {
         const existingTrx = await Trx.find({
           attendance: attendanceID,
-          student: studentID,
+          member: memberID,
         });
 
         if (existingTrx.length <= 0) {
           const trx = new Trx({
             attendance: attendanceID,
-            student: studentID,
+            member: memberID,
           });
           await trx.save();
           return "Attendance Recorded";

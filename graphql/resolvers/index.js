@@ -1,5 +1,5 @@
 const personResolvers=require('./person.resolver')
-const courseResolvers=require('./course.resolver')
+const eventResolvers=require('./event.resolver')
 const notificationResolvers=require('./notification.resolver')
 const attendanceResolvers=require('./attendance.resolver')
 const facePhotoResolvers=require('./facePhoto.resolver')
@@ -8,7 +8,7 @@ const trxResolvers=require('./trx.resolver')
 module.exports={
     Query: {
         ...personResolvers.Query,
-        ...courseResolvers.Query,
+        ...eventResolvers.Query,
         ...notificationResolvers.Query,
         ...attendanceResolvers.Query,
         ...facePhotoResolvers.Query,
@@ -16,7 +16,7 @@ module.exports={
     },
     Mutation: {
         ...personResolvers.Mutation,
-        ...courseResolvers.Mutation,
+        ...eventResolvers.Mutation,
         ...notificationResolvers.Mutation,
         ...attendanceResolvers.Mutation,
         ...facePhotoResolvers.Mutation,

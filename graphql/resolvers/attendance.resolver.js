@@ -1,40 +1,40 @@
 const { UserInputError } = require("apollo-server");
 const Attendance = require("../../models/attendance.model");
-const Course = require("../../models/course.model");
+const Event = require("../../models/event.model");
 const Notification = require("../../models/notification.model");
 const Trx = require("../../models/trx.model");
 
-const { CoursegqlParser, AttendancegqlParser } = require("./merge");
+const { EventgqlParser, AttendancegqlParser } = require("./merge");
 const { validateAttendanceInput } = require("../../util/validators");
 const checkAuth = require("../../util/check-auth");
 const { OfficialURL, MAIL_TEMPLATE_TYPE } = require("../../globalData");
 
 module.exports = {
   Query: {
-    async getAttendanceListCountInCourse(_, { courseID }, context) {
+    async getAttendanceListCountInEvent(_, { eventID }, context) {
       const currUser = checkAuth(context);
       try {
-        const course = await Course.findOne({ shortID: courseID });
-        if (!course) {
-          throw new Error("Course do not exist");
+        const event = await Event.findOne({ shortID: eventID });
+        if (!event) {
+          throw new Error("Event do not exist");
         }
 
         if (
-          course.creator != currUser._id &&
-          !course.enrolledStudents.find((stud) => stud._id == currUser._id)
+          event.creator != currUser._id &&
+          !event.enrolledMembers.find((stud) => stud._id == currUser._id)
         ) {
           throw new Error(
-            "Access forbidden. You are not the course owner or join this course."
+            "Access forbidden. You are not the event owner or join this event."
           );
         }
         let attendanceList;
 
         if (currUser.userLevel === 0) {
-          attendanceList = await Attendance.find({ course: course.shortID }, [
+          attendanceList = await Attendance.find({ event: event.shortID }, [
             "id",
           ]);
         } else if (currUser.userLevel === 1) {
-          attendanceList = await Attendance.find({ course: course.shortID }, [
+          attendanceList = await Attendance.find({ event: event.shortID }, [
             "id",
           ]);
         } else
@@ -56,17 +56,17 @@ module.exports = {
           throw new Error("Attendance do not exist");
         }
 
-        const course = await Course.findOne({ shortID: attendance.course });
-        if (!course) {
-          throw new Error("Course do not exist");
+        const event = await Event.findOne({ shortID: attendance.event });
+        if (!event) {
+          throw new Error("Event do not exist");
         }
 
         if (
-          course.creator != currUser._id &&
-          !course.enrolledStudents.find((user) => user._id == currUser._id)
+          event.creator != currUser._id &&
+          !event.enrolledMembers.find((user) => user._id == currUser._id)
         ) {
           throw new Error(
-            "Access forbidden. You are not the course owner or participants in this course."
+            "Access forbidden. You are not the event owner or participants in this event."
           );
         }
 
@@ -76,38 +76,38 @@ module.exports = {
       }
     },
 
-    async getAttendanceListInCourse(
+    async getAttendanceListInEvent(
       _,
-      { courseID, currPage, pageSize },
+      { eventID, currPage, pageSize },
       context
     ) {
       const currUser = checkAuth(context);
       try {
-        const course = await Course.findOne({ shortID: courseID });
+        const event = await Event.findOne({ shortID: eventID });
 
-        if (!course) {
-          throw new Error("Course do not exist");
+        if (!event) {
+          throw new Error("Event do not exist");
         }
         if (
-          course.creator != currUser._id &&
-          !course.enrolledStudents.find((stud) => stud._id == currUser._id)
+          event.creator != currUser._id &&
+          !event.enrolledMembers.find((stud) => stud._id == currUser._id)
         ) {
           throw new Error(
-            "Access forbidden. You are not the course owner or join this course."
+            "Access forbidden. You are not the event owner or join this event."
           );
         }
 
         let createdAttendance_list = [];
         if (currUser.userLevel === 0) {
           createdAttendance_list = await Attendance.find({
-            course: course.shortID,
+            event: event.shortID,
           })
             .skip((currPage - 1) * pageSize)
             .limit(pageSize)
             .sort({ _id: -1 });
         } else if (currUser.userLevel === 1) {
           createdAttendance_list = await Attendance.find({
-            course: course.shortID,
+            event: event.shortID,
           })
             .skip((currPage - 1) * pageSize)
             .limit(pageSize)
@@ -116,7 +116,7 @@ module.exports = {
           throw new Error("Something wrong");
         }
         return {
-          course: CoursegqlParser(course),
+          event: EventgqlParser(event),
           attendanceList: createdAttendance_list.map((attendance) =>
             AttendancegqlParser(attendance)
           ),
@@ -129,7 +129,7 @@ module.exports = {
   Mutation: {
     async createAttendance(
       _,
-      { attendanceInput: { date, time, courseID } },
+      { attendanceInput: { date, time, eventID } },
       context
     ) {
       const currUser = checkAuth(context);
@@ -141,35 +141,35 @@ module.exports = {
         const attendance = new Attendance({
           date,
           time,
-          course: courseID,
+          event: eventID,
         });
         await attendance.save();
 
-        const course = await Course.findOne({ shortID: courseID });
-        if (!course) {
-          throw new Error("Course does not exist.");
+        const event = await Event.findOne({ shortID: eventID });
+        if (!event) {
+          throw new Error("Event does not exist.");
         }
 
-        course.enrolledStudents.map(async (studentID) => {
+        event.enrolledMembers.map(async (memberID) => {
           const sendNotification = new Notification({
-            receiver: studentID,
-            title: `New Attendance Notification - Course ID: ${course.shortID}`,
-            content: `Course owner: [${currUser.firstName} ${currUser.lastName}] had created an attendance in the course: ${course.name} (${course.code}-${course.session}).
-            Enter room using URL: ${OfficialURL}/course/${course.shortID}/attendanceRoom/${attendance._id}`,
+            receiver: memberID,
+            title: `New Attendance Notification - Event ID: ${event.shortID}`,
+            content: `Event owner: [${currUser.firstName} ${currUser.lastName}] had created an attendance in the event: ${event.name} (${event.code}-${event.session}).
+            Enter room using URL: ${OfficialURL}/event/${event.shortID}/attendanceRoom/${attendance._id}`,
           });
           await sendNotification.save();
-          Object.assign(course, {
+          Object.assign(event, {
             attendanceID: attendanceID,
-            attendanceURL: `${OfficialURL}/course/${course.shortID}/attendanceRoom/${attendance._id}`,
+            attendanceURL: `${OfficialURL}/event/${event.shortID}/attendanceRoom/${attendance._id}`,
           });
 
-          const studentDoc = await Person.findById(enrolment.student);
-          //notify student through email
+          const memberDoc = await Person.findById(enrolment.member);
+          //notify member through email
           await sendEmail(
-            studentDoc.email,
-            studentDoc.firstName,
+            memberDoc.email,
+            memberDoc.firstName,
             MAIL_TEMPLATE_TYPE.CreateAttendance,
-            { owner: currUser, course: course }
+            { owner: currUser, event: event }
           );
         });
 
@@ -188,13 +188,13 @@ module.exports = {
           throw new Error("Edit a non existing attendance");
         }
 
-        const course = await Course.findOne({ shortID: attendance.course });
-        if (!course) {
-          throw new Error("Course does not exist");
+        const event = await Event.findOne({ shortID: attendance.event });
+        if (!event) {
+          throw new Error("Event does not exist");
         }
 
-        if (course.creator != currUser._id) {
-          throw new Error("You are not the course owner");
+        if (event.creator != currUser._id) {
+          throw new Error("You are not the event owner");
         }
 
         await Attendance.findByIdAndUpdate(attendanceID, {
@@ -219,13 +219,13 @@ module.exports = {
           throw new Error("Edit a non existing attendance");
         }
 
-        const course = await Course.findOne({ shortID: attendance.course });
-        if (!course) {
-          throw new Error("Course does not exist");
+        const event = await Event.findOne({ shortID: attendance.event });
+        if (!event) {
+          throw new Error("Event does not exist");
         }
 
-        if (course.creator != currUser._id) {
-          throw new Error("You are not the course owner");
+        if (event.creator != currUser._id) {
+          throw new Error("You are not the event owner");
         }
 
         await Attendance.findByIdAndUpdate(attendanceID, {

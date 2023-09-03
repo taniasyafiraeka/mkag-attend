@@ -1,40 +1,40 @@
 const { gql } = require('apollo-server');
 module.exports = gql`
-  type Course {
+  type Event {
     _id: ID!
     shortID: String!
     creator: Person!
     code: String!
     name: String!
     session: String!
-    enrolledStudents: [Person!]
+    enrolledMembers: [Person!]
     attendanceList: [Attendance!]
     createdAt: String
   }
 
-  type Courses {
-    courses: [Course!]
+  type Events {
+    events: [Event!]
   }
 
-  input courseInput {
+  input eventInput {
     code: String!
     name: String!
     session: String!
   }
 
   extend type Query {
-    getCourses(currPage: Int!, pageSize: Int!): Courses
-    getCoursesCount: Int!
-    getParticipants(courseID: ID!): [Person!]
-    getCourse(courseID: ID!): Course!
+    getEvents(currPage: Int!, pageSize: Int!): Events
+    getEventsCount: Int!
+    getParticipants(eventID: ID!): [Person!]
+    getEvent(eventID: ID!): Event!
 
   }
 
   extend type Mutation {
-    createCourse(courseInput: courseInput!): Course!
-    deleteCourse(courseID: ID!): Course
+    createEvent(eventInput: eventInput!): Event!
+    deleteEvent(eventID: ID!): Event
 
-    enrolCourse(courseID: ID!): String
-    withdrawCourse(courseID: ID!): String
+    enrolEvent(eventID: ID!): String
+    withdrawEvent(eventID: ID!): String
   }
 `;
